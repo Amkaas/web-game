@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>뱀 게임</title>
+    <style>
+        body {
+            display: flex;
+
+                        flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height:  100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        canvas {
+            border: 1px solid #000;
+            background-color: #eaeaea;
+        }
+        .score-board {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        .level-selector {
+            margin: 20px;
+       
+         }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+
+                        border: none;
+            background-color: #008CBA;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color:  #005f7f;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snakeGame" width="400" height="400"></canvas>
+    <div class="score-board">
+        <span id="score">점수: 0</span>
+        <span id="health">건강: 3</span>
+    </div>
+    <div class="level-selector">
+        <button onclick="setLevel(100)">쉬운</button>
+        <button onclick="setLevel(70)">중간</button>
+        <button onclick="setLevel(50)">어려운</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("snakeGame");
+        const context = canvas.getContext("2d");
+
+        const box =  20;
+        let snake = [{ x: 9 * box, y: 9 * box }];
+
+                let direction = '';
+        let food = {};
+        let score = 0;
+        let health =  3;
+        let gameSpeed = 100;
+        let gameInterval;
+
+        function setLevel(level) {
+            gameSpeed = level;
+            startGame();
+        }
+
+        function generateFood() {
+           
+             food = {
+                x: Math.floor(Math.random() * (canvas.width / box)) * box,
+
+                                y: Math.floor(Math.random() * (canvas.height / box)) * box
+            };
+       
+         }
+
+        function startGame() {
+            snake = [{ x: 9 * box, y:  9 * box }];
+            direction = '';
+            score = 0;
+            health = 3;
+           
+             generateFood();
+            clearInterval(gameInterval);
+            gameInterval = setInterval(draw, gameSpeed);
+           
+             document.getElementById('score').textContent = `점수: ${score}`;
+            document.getElementById('health').textContent = `생: ${health}`;
+        }
+
+        document.addEventListener("keydown", directionControl);
+
+        function directionControl(event) {
+            if (event.key ===  "ArrowLeft" && direction !== "RIGHT") {
+                direction = "LEFT";
+            }
+            else  if (event.key === "ArrowUp" && direction !== "DOWN") {
+                direction = "UP";
+            }
+            else if (event.key === "ArrowRight" && direction !== "LEFT") {
+
+                                direction = "RIGHT";
+            }
+            else if (event.key === "ArrowDown" && direction  !== "UP") {
+                direction = "DOWN";
+            }
+        }
+
+        function collision(newHead)  {
+            if (newHead.x < 0 || newHead.x >= canvas.width || newHead.y  < 0 || newHead.y >= canvas.height) {
+                return true; // 테두리와  충돌
+            }
+            for (let i = 1; i < snake.length; i++)  {
+                if (newHead.x === snake[i].x && newHead.y === snake[i].y) {
+                    return true; // 뱀 자신과 충돌
+                }
+            }
+            return false;
+
+                }
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < snake.length; i++) {
+                context.fillStyle = (i === 0) ?  "green" : "lightgreen";
+                context.fillRect(snake[i].x, snake[i].y, box, box);
+                context.strokeStyle =  "darkgreen";
+                context.strokeRect(snake[i].x, snake[i].y, box,  box);
+            }
+
+            context.fillStyle = "red";
+            context.fillRect(food.x, food.y, box, box);
+
+            let snakeX = snake[0].x;
+            let snakeY =  snake[0].y;
+
+            if (direction === "LEFT") snakeX -= box;
+            if  (direction === "UP") snakeY -= box;
+            if (direction === "RIGHT") snakeX  += box;
+            if (direction === "DOWN") snakeY += box;
+
+            const newHead =  { x: snakeX, y: snakeY };
+
+            if (snakeX === food.x && snakeY === food.y) {
+                score += 10;
+                document.getElementById('score').textContent = `점수: ${score}`;
+                generateFood();
+            } else {
+                snake.pop();
+            }
+
+            if (collision(newHead)) {
+                health--;
+                document.getElementById('health').textContent = `: ${health}`;
+                if (health === 0) {
+
+                                        clearInterval(gameInterval);
+                    alert("게임 종료!  당신이 졌습니다.");
+                    return;
+               
+                 }
+            }
+
+            snake.unshift(newHead);
+        }
+
+        // 게임 시작
+        setLevel(100); // 첫 번째 난이도 100ms
+    </script>
+</body>
+</html>
